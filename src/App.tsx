@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Database, Home, Volume2, VolumeX } from 'lucide-react';
 
@@ -21,10 +21,27 @@ export default function App() {
   const [gameState, setGameState] = useState<GameState>('menu');
   const [soundEnabled, setSoundEnabled] = useState(true);
   
+  const leaderboardStorageKey = 'gameLeaderboard';
+
   // App Global Mutable States
   const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
   const [questions, setQuestions] = useState<Question[]>(INITIAL_QUESTIONS);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(INITIAL_LEADERBOARD);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => {
+    try {
+      const stored = window.localStorage.getItem(leaderboardStorageKey);
+      return stored ? (JSON.parse(stored) as LeaderboardEntry[]) : INITIAL_LEADERBOARD;
+    } catch {
+      return INITIAL_LEADERBOARD;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(leaderboardStorageKey, JSON.stringify(leaderboard));
+    } catch {
+      // ignore storage errors in private mode or unsupported browsers
+    }
+  }, [leaderboard]);
 
   // Settings state for Generator
   const [rollSettings, setRollSettings] = useState<RollSettings>({
